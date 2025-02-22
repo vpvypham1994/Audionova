@@ -20,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from '@/components/ui/loading-button'
+import { useToast } from '@/hooks/use-toast'
 
 function Voice() {
   const [text, setText] = useState("")
@@ -33,6 +34,7 @@ function Voice() {
   ])
   const audioRef = useRef(null)
   const fileRef = useRef(null)
+  const { toast } = useToast()
 
   const handleCloneVoice = async () => {
     if (!fileRef.current?.files?.[0] || !cloneName) {
@@ -64,10 +66,18 @@ function Voice() {
       setCloneName("")
       fileRef.current.value = ""
       
-      alert("Voice cloned successfully!")
+      //alert("Voice cloned successfully!")
+      toast({
+        variant: "success",
+        description: "Voice cloned successfully!",
+      })
     } catch (error) {
       console.error("Error cloning voice:", error)
-      alert("Error cloning voice. Please try again.")
+      //alert("Error cloning voice. Please try again.")
+      toast({
+        variant: "destructive",
+        description: "Error cloning voice. Please try again.",
+      })
     } finally {
       setIsCloning(false)
     }
@@ -75,7 +85,11 @@ function Voice() {
 
   const generateAudio = async () => {
     if (!text || !voice) {
-      alert("Please enter text and select a voice")
+      //alert("Please enter text and select a voice")
+      toast({
+        variant: "destructive",
+        description: "Please enter text and select a voice.",
+      })
       return
     }
 
@@ -93,15 +107,27 @@ function Voice() {
       })
 
       if (!response.ok) {
+        toast({
+          variant: "destructive",
+          description: "HTTP Error.",
+        })
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const audioBlob = await response.blob()
       const url = URL.createObjectURL(audioBlob)
       setAudioUrl(url)
+      toast({
+        variant: "success",
+        description: "Generation successful!",
+      })
     } catch (error) {
       console.error("Error generating audio:", error)
-      alert("Error generating audio. Please try again.")
+      //alert("Error generating audio. Please try again.")
+      toast({
+        variant: "destructive",
+        description: "Error generating audio. Please try again.",
+      })
     } finally {
       setIsLoading(false)
     }
