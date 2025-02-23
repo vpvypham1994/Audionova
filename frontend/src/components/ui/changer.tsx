@@ -141,7 +141,13 @@ function Changer() {
                 <SelectValue placeholder="Select Voice" />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value="babara">Babara</SelectItem>
+                <SelectItem value="alan">Alan</SelectItem>
+                <SelectItem value="bronya">Babara</SelectItem>
+                <SelectItem value="babara">Bronya</SelectItem>
+                <SelectItem value="dingzhen">Dingzhen</SelectItem>
+                <SelectItem value="cafe">Babara</SelectItem>
+                <SelectItem value="rosalia">Rosalia</SelectItem>
+
               </SelectContent>
             </Select>
           </div>
