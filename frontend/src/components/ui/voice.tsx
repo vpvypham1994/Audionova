@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { CircleChevronRight, Play, Download, Mic, Loader2 } from "lucide-react"
-import { useToast } from '@/hooks/use-toast'
+import { CircleChevronRight, Play, Download, Mic, Speech } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
 import {
   Select,
   SelectContent,
@@ -20,198 +19,221 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { useReactMediaRecorder } from 'react-media-recorder';
+import { LoadingButton } from '@/components/ui/loading-button'
+import { useToast } from '@/hooks/use-toast'
 
-function Changer() {
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState('');
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+function Voice() {
+  const [text, setText] = useState("")
+  const [voice, setVoice] = useState("")
+  const [audioUrl, setAudioUrl] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isCloning, setIsCloning] = useState(false)
+  const [cloneName, setCloneName] = useState("")
+  const [voices, setVoices] = useState([
+    { id: "alan", name: "Alan" },
+    { id: "babara", name: "Babara" },
+    { id: "bronya", name: "Bronya" },
+    { id: "dingzhen", name: "Dingzhen" },
+    { id: "cafe", name: "Cafe" },
+    { id: "rosalia", name: "Rosalia" }
+
+  ])
+  const audioRef = useRef(null)
+  const fileRef = useRef(null)
   const { toast } = useToast()
 
-  const {
-    status,
-    startRecording,
-    stopRecording,
-    mediaBlobUrl,
-  } = useReactMediaRecorder({ audio: true, video: false });    
-  
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    startRecording();
-  };
-
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    stopRecording();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setAudioFile(event.target.files[0]);
+  const handleCloneVoice = async () => {
+    if (!fileRef.current?.files?.[0] || !cloneName) {
+      alert("Please select a file and enter a name")
+      return
     }
-  };
 
-  const handleGenerate = async () => {
+    setIsCloning(true)
+    const formData = new FormData()
+    formData.append("file", fileRef.current.files[0])
+    formData.append("name", cloneName)
+
     try {
-      setIsGenerating(true);
-      toast({
-        description: "Send Request",
-      })
-      const formData = new FormData();
-
-      // Use recorded audio if available, otherwise use uploaded file
-      if (mediaBlobUrl) {
-        const response = await fetch(mediaBlobUrl);
-        const blob = await response.blob();
-        formData.append('file', blob, 'recording.wav');
-      } else if (audioFile) {
-        formData.append('file', audioFile);
-      } else {
-        toast({
-          variant: "destructive",
-          description: "Please provide an audio file or recording.",
-        })
-        setIsGenerating(false);
-        return;
-      }
-      
-      formData.append('name', selectedVoice || 'barbara');
-
-      const response = await fetch('http://localhost:8000/change-voice/', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/clone-voice/", {
+        method: "POST",
         body: formData,
-      });
+      })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const blob = await response.blob();
-      const audioUrl = URL.createObjectURL(blob);
-      setGeneratedAudio(audioUrl);
-        toast({
-          variant: "success",
-          description: "Generation successful!",
-        })
+      const result = await response.json()
       
+      // Add the new voice to the list
+      setVoices(prev => [...prev, { id: cloneName, name: cloneName }])
+      
+      // Reset the form
+      setCloneName("")
+      fileRef.current.value = ""
+      
+      //alert("Voice cloned successfully!")
+      toast({
+        variant: "success",
+        description: "Voice cloned successfully!",
+      })
     } catch (error) {
-      console.error('Error generating audio:', error);
+      console.error("Error cloning voice:", error)
+      //alert("Error cloning voice. Please try again.")
       toast({
         variant: "destructive",
-        description: "Error generating audio.",
+        description: "Error cloning voice. Please try again.",
       })
     } finally {
-      setIsGenerating(false);
+      setIsCloning(false)
     }
-  };
+  }
 
-  const handlePlay = () => {
-    if (generatedAudio && audioRef.current) {
-      audioRef.current.play();
+  const generateAudio = async () => {
+    if (!text || !voice) {
+      //alert("Please enter text and select a voice")
+      toast({
+        variant: "destructive",
+        description: "Please enter text and select a voice.",
+      })
+      return
     }
-  };
 
-  const handleDownload = () => {
-    if (generatedAudio) {
-      const link = document.createElement('a');
-      link.href = generatedAudio;
-      link.download = 'generated-audio.wav';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    setIsLoading(true)
+    try {
+      const response = await fetch("http://localhost:8000/generate-audio/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          voice,
+        }),
+      })
+
+      if (!response.ok) {
+        toast({
+          variant: "destructive",
+          description: "HTTP Error.",
+        })
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const audioBlob = await response.blob()
+      const url = URL.createObjectURL(audioBlob)
+      setAudioUrl(url)
+      toast({
+        variant: "success",
+        description: "Generation successful!",
+      })
+    } catch (error) {
+      console.error("Error generating audio:", error)
+      //alert("Error generating audio. Please try again.")
+      toast({
+        variant: "destructive",
+        description: "Error generating audio. Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
+
+  const playAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play()
+    }
+  }
+
+  const downloadAudio = () => {
+    if (audioUrl) {
+      const a = document.createElement("a")
+      a.href = audioUrl
+      a.download = "generated_audio.wav"
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+  }
 
   return (
     <Card className="w-full place-self-center">
       <CardHeader>
-        <CardTitle>Voice Changer</CardTitle>
-        <CardDescription>Upload an audio file or start a recording.</CardDescription>
+        <CardTitle>Voice Generation</CardTitle>
+        <CardDescription>Generate speech in one-click.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid w-full items-center gap-4">
-          <Label htmlFor="voice">Default Voice</Label>
+          <div className="flex flex-col space-y-2.5">
+            <div className="h-3/4">
+              <Textarea 
+                placeholder="Type your message here." 
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+            </div>
+          </div>
+          <Label htmlFor="voice-select">Available Voices</Label>
           <div className="flex flex-col space-y-1.5">
-            <Select onValueChange={setSelectedVoice}>
-              <SelectTrigger id="voice">
+            <Select value={voice} onValueChange={setVoice}>
+              <SelectTrigger id="voice-select">
                 <SelectValue placeholder="Select Voice" />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value="alan">Alan</SelectItem>
-                <SelectItem value="bronya">Babara</SelectItem>
-                <SelectItem value="babara">Bronya</SelectItem>
-                <SelectItem value="dingzhen">Dingzhen</SelectItem>
-                <SelectItem value="cafe">Babara</SelectItem>
-                <SelectItem value="rosalia">Rosalia</SelectItem>
-
+                {voices.map(voice => (
+                  <SelectItem key={voice.id} value={voice.id}>
+                    {voice.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          <Label htmlFor="audio-input">Input Voice File</Label>
+          <Label>Clone New Voice</Label>
           <div className="flex gap-3">
             <Input 
-              className='w-2/4' 
-              id="audio-input" 
-              type="file" 
-              accept="audio/*"
-              onChange={handleFileChange}
+              className="w-2/4" 
+              type="text" 
+              placeholder="Voice Name" 
+              value={cloneName}
+              onChange={(e) => setCloneName(e.target.value)}
             />
-            {!isRecording ? (
-              <Button onClick={handleStartRecording} className="w-2/4">
-                <Mic className="mr-2" /> Start Recording
-              </Button>
-            ) : (
-              <Button variant="destructive" onClick={handleStopRecording} className="w-2/4">
-                <Mic className="mr-2" /> Stop Recording
-              </Button>
-            )}
+            <Input 
+              className="w-1/4" 
+              type="file" 
+              ref={fileRef}
+              accept=".wav"
+              onChange={(e) => {
+                if (e.target.files?.[0]?.type !== "audio/wav") {
+                  alert("Please select a WAV file")
+                  e.target.value = ""
+                }
+              }}
+            />
+            {!isCloning?(<Button className="w-1/4" onClick={handleCloneVoice} disabled={isCloning}> <Speech className="mr-2" />Clone</Button>):(<LoadingButton loading className="w-1/4">Cloning</LoadingButton>)}
           </div>
-          {uploadStatus && (
-            <div className="text-sm text-gray-500">{uploadStatus}</div>
-          )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between gap-3">
+      {!isLoading?(<Button className="w-1/3" onClick={generateAudio} disabled={isLoading} ><CircleChevronRight className="mr-2" />Generate</Button>):(<LoadingButton loading className="w-1/3">Generating</LoadingButton>)}
+
         <Button 
           className="w-1/3" 
-          onClick={handleGenerate} 
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating
-              
-            </>
-          ) : (
-            <>
-              <CircleChevronRight className="mr-2"  />
-              Generate
-            </>
-          )}
-        </Button>
-        <Button 
-          className="w-1/3" 
-          onClick={handleDownload}
-          disabled={!generatedAudio}
+          onClick={downloadAudio}
+          disabled={!audioUrl}
         >
           <Download className="mr-2" />Download
         </Button>
         <Button 
           className="w-1/3" 
-          onClick={handlePlay}
-          disabled={!generatedAudio}
+          onClick={playAudio}
+          disabled={!audioUrl}
         >
           <Play className="mr-2" />Play
         </Button>
       </CardFooter>
-      <audio ref={audioRef} src={generatedAudio || ''} />
+      <audio ref={audioRef} src={audioUrl} />
     </Card>
   )
 }
 
-export { Changer }
+export { Voice }
