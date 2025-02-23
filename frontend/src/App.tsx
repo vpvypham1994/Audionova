@@ -49,9 +49,6 @@ function App() {
     <TabsContent value="changer">
     <Changer></Changer>
     </TabsContent>
-    <TabsContent value="translate">
-    <Translate></Translate>
-    </TabsContent>
     </Tabs>
    
  )
