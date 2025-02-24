@@ -13,7 +13,7 @@ AudioNova is a Windows-based text-to-speech and voice transformation application
 ## Installation
 1. **Download/Clone the AudioNova repository** onto your Windows machine.
 2. Open the project folder in your file explorer.
-3. Create a checkpoints folder (./checkpoints/) in the installation directory. Manually download the vallex-checkpoint.pt file from here and put it in the checkpoints folder.
+3. Create a checkpoints folder (./checkpoints/) in the installation directory. Manually download the vallex-checkpoint.pt file from [here](https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt) and put it in the checkpoints folder.
 4. **Double-click** on the `run.bat` file to launch the application.  
    - This script handles initializing necessary services and launching the user interface.
 ## Using the Application
