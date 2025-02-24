@@ -18,6 +18,29 @@ REM ----------------------------------------
 
 winget install ffmpeg
 
+REM Create the checkpoints folder in C:\ if it does not already exist
+IF NOT EXIST "C:\checkpoints" (
+    mkdir "C:\checkpoints"
+    echo "Created C:\checkpoints folder."
+) ELSE (
+    echo "C:\checkpoints folder already exists."
+)
+
+REM  Download the file from GitHub.
+REM    Replace the URL with the direct link to the checkpoint file you want.
+REM    The current link points to the readme-ov-file tab (likely HTML content).
+REM    Also update the output filename if needed.
+
+echo "Downloading checkpoint file from GitHub..."
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/Plachtaa/VALL-E-X?tab=readme-ov-file' -OutFile 'C:\checkpoints\valle_x_checkpoint.bin'"
+
+REM Check if the file was downloaded successfully
+IF EXIST "C:\checkpoints\valle_x_checkpoint.bin" (
+    echo "Download successful. File saved to C:\checkpoints\valle_x_checkpoint.bin"
+) ELSE (
+    echo "Download failed or URL invalid. Please check the direct download link."
+)
+
 REM Create a virtual environment if it doesn't exist.
 IF NOT EXIST "venv" (
     echo Creating Python virtual environment...
