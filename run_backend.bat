@@ -18,27 +18,32 @@ REM ----------------------------------------
 
 winget install ffmpeg
 
-REM Create the checkpoints folder in C:\ if it does not already exist
-IF NOT EXIST "C:\checkpoints" (
-    mkdir "C:\checkpoints"
-    echo "Created C:\checkpoints folder."
+REM ----------------------------------------------
+REM Create a folder named "checkpoints" in the same 
+REM directory as this .bat file (i.e., repo root)
+REM ----------------------------------------------
+
+IF NOT EXIST "%~dp0checkpoints" (
+    mkdir "%~dp0checkpoints"
+    echo "Created '%~dp0checkpoints' folder."
 ) ELSE (
-    echo "C:\checkpoints folder already exists."
+    echo "Folder '%~dp0checkpoints' already exists."
 )
 
-REM  Download the file from GitHub.
-REM    Replace the URL with the direct link to the checkpoint file you want.
-REM    The current link points to the readme-ov-file tab (likely HTML content).
-REM    Also update the output filename if needed.
-
+REM ----------------------------------------------
+REM Download the file from GitHub into checkpoints
+REM Update the URL to the actual raw file link
+REM ----------------------------------------------
 echo "Downloading checkpoint file from GitHub..."
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/Plachtaa/VALL-E-X?tab=readme-ov-file' -OutFile 'C:\checkpoints\valle_x_checkpoint.bin'"
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/Plachtaa/VALL-E-X?tab=readme-ov-file' -OutFile '%~dp0checkpoints\valle_x_checkpoint.bin'"
 
+REM ----------------------------------------------
 REM Check if the file was downloaded successfully
-IF EXIST "C:\checkpoints\valle_x_checkpoint.bin" (
-    echo "Download successful. File saved to C:\checkpoints\valle_x_checkpoint.bin"
+REM ----------------------------------------------
+IF EXIST "%~dp0checkpoints\valle_x_checkpoint.bin" (
+    echo "Download successful. File saved to '%~dp0checkpoints\valle_x_checkpoint.bin'."
 ) ELSE (
-    echo "Download failed or URL invalid. Please check the direct download link."
+    echo "Download failed or URL invalid. Please ensure you have a direct download link."
 )
 
 REM Create a virtual environment if it doesn't exist.
