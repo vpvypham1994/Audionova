@@ -16,6 +16,7 @@ REM ----------------------------------------
 REM Setup and launch FastAPI backend
 REM ----------------------------------------
 
+winget install ffmpeg
 
 REM Create a virtual environment if it doesn't exist.
 IF NOT EXIST "venv" (

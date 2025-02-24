@@ -40,7 +40,6 @@ function App() {
   <TabsList className='w-full gap-2'>
     <TabsTrigger className='w-1/2' value="voice">Voice Generation</TabsTrigger>
     <TabsTrigger className='w-1/2' value="changer">Voice Changer</TabsTrigger>
-    <TabsTrigger className='w-1/2' value="translate">Translate</TabsTrigger>
 
   </TabsList>
   <TabsContent value="voice">
