@@ -10,16 +10,16 @@ AudioNova is a Windows-based text-to-speech and voice transformation application
    - Required for installing and managing certain frontend or build dependencies.  
    - You can download Node.js from [nodejs.org](https://nodejs.org/).
 
-## Using the Application
+## Installation
 1. **Download/Clone the AudioNova repository** onto your Windows machine.
 2. Open the project folder in your file explorer.
-3. **Double-click** on the `run.bat` file to launch the application.  
+3. Create a checkpoints folder (./checkpoints/) in the installation directory. Manually download the vallex-checkpoint.pt file from here and put it in the checkpoints folder.
+4. **Double-click** on the `run.bat` file to launch the application.  
    - This script handles initializing necessary services and launching the user interface.
-4. Once the application is running, select either:
+## Using the Application
+1. Once the application is running, select either:
    - **Voice Generation** to input text and generate/cloned voice.
    - **Voice Changing** to upload or record audio and transform it into another voice.
-
-Feel free to explore the various voices, tune the settings, and enjoy the local-first speech experience.
 
 
 
